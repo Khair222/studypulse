@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>StudyPulse - Study Habit &amp; Productivity Analyzer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="style.css">
+  <script src="/eel.js"></script>
+  <script src="chart.umd.min.js"></script>
+</head>
+<body class="theme-coral">
+
+  <!-- ANIMATED SPLASH / LOADING SCREEN -->
+  <div id="splashLoadingScreen" class="splash-screen" style="display: none;">
+    <div class="splash-content">
+      <div class="splash-logo-wrap">
+        <div class="splash-logo-glow"></div>
+        <div class="splash-logo-icon">✦</div>
+      </div>
+      <h1 class="splash-title">StudyPulse</h1>
+      <p class="splash-subtitle">Study Habit &amp; Productivity Analyzer</p>
+      
+      <div class="splash-loader-wrap">
+        <div class="splash-spinner"></div>
+        <div class="splash-progress-track">
+          <div class="splash-progress-bar" id="splashProgressBar"></div>
+        </div>
+        <span class="splash-status-text" id="splashStatusText">Menyiapkan ruang belajarmu...</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FULLSCREEN LOGIN & REGISTER SCREEN -->
+  <div id="authScreenView" class="auth-screen-overlay" style="display: flex;">
+    <div class="auth-card-container">
+      <div class="auth-brand-header">
+        <div class="auth-brand-logo">✦</div>
+        <h2>Selamat Datang di StudyPulse</h2>
+        <p>Masuk ke akunmu untuk mulai mencatat dan menganalisis kebiasaan belajarmu.</p>
+      </div>
+
+      <div class="auth-tab-nav">
+        <button type="button" class="auth-tab-pill active" id="tabMainLogin">Masuk (Login)</button>
+        <button type="button" class="auth-tab-pill" id="tabMainRegister">Daftar Akun Baru</button>
+      </div>
+
+      <!-- Form Login -->
+      <form id="formScreenLogin" class="auth-screen-form">
+        <div class="form-group">
+          <label for="screenLoginCred">Email / Username / NIM</label>
+          <input type="text" id="screenLoginCred" placeholder="Masukkan email, username, atau NIM" required>
+        </div>
+
+        <div class="form-group">
+          <label for="screenLoginPwd">Password</label>
+          <div class="password-input-wrap">
+            <input type="password" id="screenLoginPwd" placeholder="Masukkan password" required>
+            <button type="button" class="btn-toggle-eye" id="btnToggleScreenPwd">👁</button>
+          </div>
+        </div>
+
+        <div class="auth-options-row">
+          <label class="remember-label">
+            <input type="checkbox" id="screenKeepMeLoggedIn">
+            <span>Ingat saya (Keep me logged in)</span>
+          </label>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-auth-submit" id="btnSubmitLogin">
+          <span>Masuk ke Dashboard</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
+        <div id="screenLoginMsg" class="form-feedback-msg"></div>
+      </form>
+
+      <!-- Form Register -->
+      <form id="formScreenRegister" class="auth-screen-form" style="display: none;">
+        <div class="form-group">
+          <label for="screenRegFullName">Nama Lengkap <span class="req">*</span></label>
+          <input type="text" id="screenRegFullName" placeholder="Nama lengkap mahasiswa" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="screenRegUsername">Username <span class="req">*</span></label>
+            <input type="text" id="screenRegUsername" placeholder="username" required>
+          </div>
+          <div class="form-group">
+            <label for="screenRegNim">NIM</label>
+            <input type="text" id="screenRegNim" placeholder="Nomor Induk Mahasiswa">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="screenRegEmail">Email</label>
+          <input type="email" id="screenRegEmail" placeholder="nama@email.com">
+        </div>
+
+        <div class="form-group">
+          <label for="screenRegPassword">Kata Sandi <span class="req">*</span> <small style="font-weight: normal; color: #a09eb8;">(Min 8 kar, huruf besar, kecil &amp; angka)</small></label>
+          <input type="password" id="screenRegPassword" placeholder="Contoh: Belajar2026" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-auth-submit" id="btnSubmitRegister">
+          <span>Daftar Sekarang</span>
+        </button>
+        <div id="screenRegMsg" class="form-feedback-msg"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MAIN APPLICATION ROOT CONTAINER -->
+  <div id="appRootLayout" class="app-root-layout" style="display: none;">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <div class="logo-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="2 12 5 12 8 4 12 20 16 4 19 12 22 12"/>
+            </svg>
+          </div>
+          <div class="logo-text">
+            <h2>StudyPulse</h2>
+            <span>Study Habit &amp; Productivity Analyzer</span>
+          </div>
+        </div>
+
+        <!-- Mini Profile -->
+        <div class="user-mini-card" id="userMiniCard">
+          <div class="avatar-ring">
+            <img id="sidebarAvatarImg" src="" alt="Avatar" class="avatar-img" style="display:none;">
+            <div id="sidebarAvatarFallback" class="avatar-fallback" aria-label="Foto profil belum diisi"></div>
+          </div>
+          <div class="user-mini-info">
+            <strong id="sidebarUserName">Fathul Khair</strong>
+            <small id="sidebarUserNim">NIM 241712073</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Menu -->
+      <nav class="nav-menu">
+        <button class="nav-item active" data-page="dashboard">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span>Dashboard</span>
+        </button>
+
+        <button class="nav-item" data-page="timer">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span>Study Timer</span>
+        </button>
+
+        <button class="nav-item" data-page="activity">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <span>Study Activity</span>
+        </button>
+
+        <button class="nav-item" data-page="analytics">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          <span>Study Analytics</span>
+        </button>
+
+        <button class="nav-item" data-page="planner">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span>Study Planner</span>
+        </button>
+
+        <button class="nav-item" data-page="recommendation">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 1 1 7.072 0l-.548.547A3.374 3.374 0 0 0 14 18.469V19a2 2 0 1 1-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+          <span>Recommendation</span>
+        </button>
+
+        <button class="nav-item" data-page="reports">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+          <span>Reports</span>
+        </button>
+
+        <button class="nav-item" data-page="leaderboard">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <span class="nav-label-group">Leaderboard <span class="badge-mini-rank">Top 10</span></span>
+        </button>
+
+        <button class="nav-item" data-page="materials">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          <span>Materi &amp; Kuis</span>
+        </button>
+
+        <button class="nav-item" data-page="profile">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span>Profile</span>
+        </button>
+      </nav>
+
+      <!-- Sidebar Footer -->
+      <div class="sidebar-footer">
+        <button class="footer-btn" id="btnOpenSettings">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <span>Settings</span>
+        </button>
+
+        <button class="footer-btn danger" id="btnLogout">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <span>Logout</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN VIEWPORT -->
+    <main class="main-content">
+
+      <!-- TOPBAR -->
+      <header class="topbar">
+        <div class="topbar-title-group">
+          <h1 id="pageTitle">Dashboard</h1>
+          <p id="pageSubtitle">Ringkasan aktivitas dan produktivitas belajarmu.</p>
+        </div>
+
+        <div class="topbar-actions">
+          <!-- Filter tanggal mingguan -->
+          <div class="date-badge" id="topbarDateBadge">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span id="dateRangeText">Minggu ini (16 - 22 Nov 2026)</span>
+          </div>
+
+          <!-- Indikator Koneksi Database Cloud/Lokal -->
+          <div class="db-status-pill" id="dbStatusPill" title="Klik untuk menguji koneksi database">
+            <span class="status-dot"></span>
+            <span id="dbStatusLabel">Database Lokal (SQLite)</span>
+          </div>
+
+          <!-- Tombol Notifikasi -->
+          <button class="icon-btn" id="btnNotifications" title="Lihat Notifikasi">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="notification-badge" id="notifDot"></span>
+          </button>
+
+          <!-- Mini Avatar Topbar -->
+          <button class="topbar-avatar" id="btnTopbarProfile" title="Buka Profil">
+            <img id="topbarAvatarImg" src="" alt="Avatar" style="display:none;">
+            <span id="topbarAvatarFallback">R</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- CONTENT BODY -->
+      <div class="content-body">
+
+        <!-- ================= PAGE 1: DASHBOARD ================= -->
+        <section class="page-view active" id="page-dashboard">
+          <!-- 4 Stat Cards Row -->
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <div class="metric-header">
+                <span class="metric-label">Total Jam Belajar</span>
+                <div class="metric-icon-wrap purple">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </div>
+              </div>
+              <div class="metric-value" id="dashTotalHours">14,5 jam</div>
+              <div class="metric-footer">
+                <span class="trend-badge positive" id="dashTrendPct">↑ +12% dari minggu lalu</span>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-header">
+                <span class="metric-label">Jumlah Sesi</span>
+                <div class="metric-icon-wrap blue">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                </div>
+              </div>
+              <div class="metric-value" id="dashTotalSessions">9 sesi</div>
+              <div class="metric-footer">
+                <span class="trend-badge positive" id="dashDiffSessions">↑ +3 sesi</span>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-header">
+                <span class="metric-label">Target Mingguan</span>
+                <div class="metric-icon-wrap amber">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+                </div>
+              </div>
+              <div class="metric-value" id="dashTargetPct">91%</div>
+              <div class="metric-footer">
+                <span class="metric-subtext" id="dashTargetFraction">(14,5 / 16 jam)</span>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-header">
+                <span class="metric-label">Mata Pelajaran Terbanyak</span>
+                <div class="metric-icon-wrap rose">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                </div>
+              </div>
+              <div class="metric-value font-compact" id="dashTopSubject">Pemrograman</div>
+              <div class="metric-footer">
+                <span class="metric-subtext" id="dashTopSubjectHours">(5,5 jam)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Middle Charts Row -->
+          <div class="dashboard-charts-grid">
+            <!-- Durasi Belajar per Hari -->
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <h3>Durasi Belajar per Hari</h3>
+                  <span class="card-subtitle">Jam belajar dalam minggu ini</span>
+                </div>
+              </div>
+              <div class="chart-container" style="height: 240px; position: relative;">
+                <canvas id="chartDailyDuration"></canvas>
+              </div>
+            </div>
+
+            <!-- Proporsi Waktu per Mata Pelajaran -->
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <h3>Proporsi Waktu per Mata Pelajaran</h3>
+                  <span class="card-subtitle">Distribusi durasi belajar</span>
+                </div>
+              </div>
+              <div class="donut-chart-layout">
+                <div class="donut-canvas-wrap" style="position: relative; width: 180px; height: 180px;">
+                  <canvas id="chartSubjectDonut" width="180" height="180"></canvas>
+                  <div class="donut-center-info">
+                    <strong id="donutCenterHours">14,5 jam</strong>
+                    <span>Total</span>
+                  </div>
+                </div>
+                <div class="donut-legend-list" id="donutLegendList">
+                  <!-- Diisi JS -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Row: Sesi Belajar Terakhir & Rekomendasi Waktu Belajar -->
+          <div class="dashboard-bottom-grid">
+            <!-- Sesi Belajar Terakhir -->
+            <div class="card">
+              <div class="card-header">
+                <h3>Sesi Belajar Terakhir</h3>
+                <button class="link-btn" data-goto="activity">Lihat Semua →</button>
+              </div>
+              <div class="recent-sessions-list" id="dashRecentSessionsList">
+                <!-- Diisi JS -->
+              </div>
+            </div>
+
+            <!-- Rekomendasi Waktu Belajar & Status Summary -->
+            <div class="card">
+              <!-- Dark Status Summary Card from StarAdmin Mockup -->
+              <div class="card-status-summary" style="margin-bottom: 20px;">
+                <div class="status-summary-header">
+                  <span class="status-summary-title">Status Summary</span>
+                  <span class="status-summary-badge">Closed Value</span>
+                </div>
+                <div class="status-summary-body">
+                  <div class="status-summary-val-wrap">
+                    <span class="status-summary-label">Total Menit Fokus Belajar</span>
+                    <h2 class="status-summary-value" id="dashStatusValue">357</h2>
+                  </div>
+                  <div class="status-summary-wave">
+                    <svg viewBox="0 0 140 50" fill="none" preserveAspectRatio="none">
+                      <path d="M0 35 C 30 10, 60 45, 90 20 C 110 5, 125 15, 140 10" stroke="#34B1AA" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+                    </svg>
+                  </div>
+                </div>
+                <div class="status-summary-footer">
+                  <div class="status-pill-item">
+                    <span class="status-pill-dot dot-teal"></span>
+                    <span id="dashStatusPct">Fokus Tinggi</span>
+                  </div>
+                  <div class="status-pill-item">
+                    <span class="status-pill-dot dot-orange"></span>
+                    <span id="dashStatusTrend">+12% Produktivitas</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card-header">
+                <h3>Rekomendasi Waktu Belajar</h3>
+              </div>
+              <div class="rec-highlight-box">
+                <div class="rec-time-badge">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  <span>Waktu terbaik untuk belajar</span>
+                </div>
+                <div class="rec-big-hour" id="dashBestTimeRange">19.00 - 21.00</div>
+                <p class="rec-basis-text">Berdasarkan analisis kebiasaan belajarmu dalam 2 minggu terakhir.</p>
+              </div>
+
+              <div class="insights-checklist">
+                <h4>Insight Lainnya:</h4>
+                <ul id="dashInsightsList">
+                  <li><span class="check-icon">✓</span> Durasi sesi rata-rata: <strong id="dashAvgDurText">1,6 jam</strong></li>
+                  <li><span class="check-icon">✓</span> Hari paling produktif: <strong id="dashProdDayText">Sabtu</strong></li>
+                  <li><span class="check-icon">✓</span> Mata pelajaran yang perlu ditingkatkan: <strong id="dashLeastSubjText">Jaringan</strong></li>
+                  <li><span class="check-icon">✓</span> Target harian yang disarankan: <strong>2 jam</strong></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= PAGE 2: STUDY TIMER ================= -->
+        <section class="page-view" id="page-timer">
+          <div class="timer-mode-switcher">
+            <button class="mode-tab active" id="tabPomodoro">Pomodoro (25m)</button>
+            <button class="mode-tab" id="tabStopwatch">Stopwatch Bebas</button>
+          </div>
+
+          <div class="timer-main-grid">
+            <!-- Left: Big Circular Timer -->
+            <div class="card timer-display-card">
+              <div class="circular-timer-wrap">
+                <svg class="timer-ring-svg" viewBox="0 0 280 280">
+                  <circle class="ring-bg" cx="140" cy="140" r="120" />
+                  <circle class="ring-progress" id="timerRingProgress" cx="140" cy="140" r="120" />
+                </svg>
+                <div class="timer-center-text">
+                  <div class="timer-digits" id="timerClockDisplay">25:00</div>
+                  <div class="timer-state-label" id="timerStateLabel">Fokus Belajar</div>
+                  <div class="timer-session-info" id="timerSessionCounter">Sesi 1 dari 4</div>
+                </div>
+              </div>
+
+              <div class="timer-actions-row">
+                <button class="btn btn-primary" id="btnTimerStart">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                  <span>Mulai</span>
+                </button>
+                <button class="btn btn-secondary" id="btnTimerPause" disabled>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                  <span>Jeda</span>
+                </button>
+                <button class="btn btn-outline" id="btnTimerReset">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                  <span>Reset</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Right: Session Form & Details -->
+            <div class="card timer-form-card">
+              <div class="card-header">
+                <div>
+                  <h3>Atur Sesi Belajar</h3>
+                  <span class="card-subtitle">Isi tujuan belajar agar progresmu tercatat otomatis</span>
+                </div>
+              </div>
+
+              <form id="timerSessionForm" class="app-form">
+                <div class="form-group">
+                  <label for="timerSubject">Mata Pelajaran <span class="req">*</span></label>
+                  <input type="text" id="timerSubject" list="subjectDatalist" placeholder="Contoh: Pemrograman" required>
+                  <datalist id="subjectDatalist">
+                    <option value="Rekayasa Perangkat Lunak">
+                    <option value="Sistem Pendukung Keputusan">
+                    <option value="Sistem Informasi Geografis">
+                    <option value="Praktikum Teknik Penulisan Karya Ilmiah">
+                    <option value="Teknik Penulisan Karya Ilmiah">
+                    <option value="Praktikum E-Application">
+                    <option value="Praktikum Pemrograman Visual">
+                    <option value="E-Application">
+                    <option value="Praktikum Manajemen Proyek IT">
+                    <option value="Manajemen Proyek IT">
+                    <option value="Pemrograman Visual">
+                  </datalist>
+                </div>
+
+                <div class="form-group">
+                  <label for="timerTopic">Topik Belajar <span class="req">*</span></label>
+                  <input type="text" id="timerTopic" placeholder="Contoh: Pengenalan Pandas &amp; DataFrame" required>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="timerDurationMinutes">Target Durasi (Menit)</label>
+                    <select id="timerDurationMinutes">
+                      <option value="25" selected>25 Menit (Pomodoro)</option>
+                      <option value="45">45 Menit</option>
+                      <option value="60">60 Menit (1 Jam)</option>
+                      <option value="90">90 Menit (1,5 Jam)</option>
+                      <option value="120">120 Menit (2 Jam)</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Tingkat Fokus (1-5)</label>
+                    <div class="focus-rating-stars" id="timerFocusRating">
+                      <button type="button" class="star-btn" data-val="1">★</button>
+                      <button type="button" class="star-btn" data-val="2">★</button>
+                      <button type="button" class="star-btn" data-val="3">★</button>
+                      <button type="button" class="star-btn active" data-val="4">★</button>
+                      <button type="button" class="star-btn active" data-val="5">★</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="timerNotes">Catatan (opsional)</label>
+                  <textarea id="timerNotes" rows="2" placeholder="Catat materi yang sudah dipelajari atau kendala yang dihadapi..."></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block">Simpan Sesi Belajar ke Database</button>
+                <div id="timerFormMsg" class="form-feedback-msg"></div>
+              </form>
+            </div>
+          </div>
+
+          <!-- Riwayat Sesi Hari Ini -->
+          <div class="card mt-4">
+            <div class="card-header">
+              <div>
+                <h3>Riwayat Sesi Hari Ini</h3>
+                <span class="card-subtitle">Sesi yang telah diselesaikan pada tanggal hari ini</span>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Mata Pelajaran</th>
+                    <th>Topik</th>
+                    <th>Durasi</th>
+                    <th>Tingkat Fokus</th>
+                    <th>Waktu</th>
+                  </tr>
+                </thead>
+                <tbody id="timerTodayTableBody">
+                  <!-- Diisi JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= PAGE 3: STUDY ACTIVITY (CRUD & SEARCH) ================= -->
+        <section class="page-view" id="page-activity">
+          <div class="card">
+            <div class="activity-toolbar">
+              <div class="search-box-wrap">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" id="activitySearchInput" placeholder="Cari mata pelajaran atau topik...">
+              </div>
+
+              <div class="filter-controls-group">
+                <select id="activitySubjectFilter" class="form-select">
+                  <option value="Semua Mata Pelajaran">Semua Mata Pelajaran</option>
+                </select>
+
+                <button class="btn btn-outline" id="btnExportCsv">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  <span>Export CSV</span>
+                </button>
+
+                <button class="btn btn-outline" id="btnOpenImportCsv">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  <span>Import CSV</span>
+                </button>
+
+                <button class="btn btn-primary" id="btnOpenAddActivity">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  <span>Tambah Aktivitas</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Table Study Activity -->
+            <div class="table-responsive">
+              <table class="data-table" id="activityTable">
+                <thead>
+                  <tr>
+                    <th style="width: 45px;">No</th>
+                    <th>Mata Pelajaran</th>
+                    <th>Topik</th>
+                    <th>Durasi</th>
+                    <th>Fokus</th>
+                    <th>Tanggal</th>
+                    <th style="width: 90px; text-align: center;">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="activityTableBody">
+                  <!-- Diisi JS -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Pagination Bar -->
+            <div class="table-pagination-footer">
+              <span id="activityPaginationInfo">Menampilkan 0 dari 0 aktivitas</span>
+              <div class="pagination-buttons" id="activityPaginationBtns">
+                <!-- Diisi JS -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= PAGE 4: STUDY ANALYTICS ================= -->
+        <section class="page-view" id="page-analytics">
+          <div class="analytics-filter-bar">
+            <div class="btn-group">
+              <button class="btn-toggle active" data-period="7d">7 Hari</button>
+              <button class="btn-toggle" data-period="30d">30 Hari</button>
+              <button class="btn-toggle" data-period="90d">3 Bulan</button>
+            </div>
+
+            <select id="analyticsSubjectSelect" class="form-select">
+              <option value="Semua Mata Pelajaran">Semua Mata Pelajaran</option>
+            </select>
+          </div>
+
+          <!-- 2 Top Charts -->
+          <div class="analytics-charts-grid">
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <h3>Durasi Belajar Harian</h3>
+                  <span class="card-subtitle">Fluktuasi jam belajar per hari</span>
+                </div>
+              </div>
+              <div class="chart-container" style="height: 250px; position: relative;">
+                <canvas id="chartAnalyticsDaily"></canvas>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <h3>Tren Produktivitas Mingguan</h3>
+                  <span class="card-subtitle">Kurva peningkatan konsistensi</span>
+                </div>
+              </div>
+              <div class="chart-container" style="height: 250px; position: relative;">
+                <canvas id="chartAnalyticsTrend"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Analytics Row -->
+          <div class="analytics-bottom-grid">
+            <!-- Proporsi Mata Pelajaran -->
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <h3>Proporsi Mata Pelajaran</h3>
+                  <span class="card-subtitle">Persentase alokasi waktu</span>
+                </div>
+              </div>
+              <div class="chart-container" style="height: 240px; position: relative;">
+                <canvas id="chartAnalyticsDonut"></canvas>
+              </div>
+            </div>
+
+            <!-- Ringkasan Analisis -->
+            <div class="card">
+              <div class="card-header">
+                <h3>Ringkasan Analisis</h3>
+              </div>
+              <div class="analytics-summary-cards">
+                <div class="summary-stat-row">
+                  <div class="stat-icon-badge purple">⏱</div>
+                  <div class="stat-meta">
+                    <span class="stat-label">Rata-rata durasi sesi</span>
+                    <strong class="stat-val" id="anAvgDur">1,6 jam</strong>
+                  </div>
+                </div>
+
+                <div class="summary-stat-row">
+                  <div class="stat-icon-badge blue">📅</div>
+                  <div class="stat-meta">
+                    <span class="stat-label">Hari paling produktif</span>
+                    <strong class="stat-val" id="anProdDay">Sabtu</strong>
+                  </div>
+                </div>
+
+                <div class="summary-stat-row">
+                  <div class="stat-icon-badge amber">📚</div>
+                  <div class="stat-meta">
+                    <span class="stat-label">Mata pelajaran terbanyak</span>
+                    <strong class="stat-val" id="anTopSubj">Pemrograman</strong>
+                  </div>
+                </div>
+
+                <div class="summary-stat-row">
+                  <div class="stat-icon-badge green">★</div>
+                  <div class="stat-meta">
+                    <span class="stat-label">Tingkat fokus rata-rata</span>
+                    <strong class="stat-val" id="anAvgFocus">4,2 / 5</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= PAGE 5: STUDY PLANNER (WEEKLY TIMETABLE GRID) ================= -->
+        <section class="page-view" id="page-planner">
+          <div class="planner-toolbar">
+            <div class="btn-group">
+              <button class="btn-toggle active" id="btnPlannerWeekly">Mingguan</button>
+              <button class="btn-toggle" id="btnPlannerMonthly">Daftar Semua</button>
+            </div>
+
+            <div class="planner-date-nav">
+              <button class="nav-arrow-btn" id="btnPlannerPrev">‹</button>
+              <span class="planner-nav-label" id="plannerWeekLabel">16 - 22 Nov 2026</span>
+              <button class="nav-arrow-btn" id="btnPlannerNext">›</button>
+            </div>
+
+            <button class="btn btn-primary" id="btnOpenAddSchedule">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <span>Tambah Jadwal</span>
+            </button>
+          </div>
+
+          <div class="planner-grid-layout" id="plannerGridLayout">
+            <!-- Calendar Grid 7 Hari -->
+            <div class="card planner-timetable-card" id="plannerTimetableCard">
+              <div class="timetable-scrollable">
+                <table class="timetable-table">
+                  <thead>
+                    <tr id="timetableHeaderRow">
+                      <th class="time-col">Waktu</th>
+                      <th>Sen</th>
+                      <th>Sel</th>
+                      <th>Rab</th>
+                      <th>Kam</th>
+                      <th>Jum</th>
+                      <th>Sab</th>
+                      <th>Min</th>
+                    </tr>
+                  </thead>
+                  <tbody id="timetableBody">
+                    <!-- Diisi secara dinamis oleh JS dengan blok jadwal berwarna -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Daftar Jadwal List di Sisi Kanan -->
+            <div class="card planner-list-card" id="plannerListCard">
+              <div class="card-header">
+                <h3>Daftar Jadwal</h3>
+              </div>
+              <div class="schedules-item-list" id="plannerSchedulesList">
+                <!-- Diisi JS -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= PAGE 6: RECOMMENDATION ================= -->
+        <section class="page-view" id="page-recommendation">
+          <!-- 3 Highlight Metric Cards -->
+          <div class="rec-metrics-grid">
+            <div class="rec-metric-card">
+              <div class="rec-metric-icon">⏰</div>
+              <div class="rec-metric-info">
+                <span class="label">Waktu terbaik</span>
+                <strong class="value" id="recBestTimeVal">19.00 - 21.00</strong>
+              </div>
+            </div>
+
+            <div class="rec-metric-card">
+              <div class="rec-metric-icon">📅</div>
+              <div class="rec-metric-info">
+                <span class="label">Hari paling produktif</span>
+                <strong class="value" id="recProdDayVal">Sabtu</strong>
+              </div>
+            </div>
+
+            <div class="rec-metric-card">
+              <div class="rec-metric-icon">⏳</div>
+              <div class="rec-metric-info">
+                <span class="label">Durasi rata-rata</span>
+                <strong class="value" id="recAvgDurVal">1,6 jam</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="rec-content-grid">
+            <!-- Rekomendasi untukmu -->
+            <div class="card">
+              <div class="card-header">
+                <h3>Rekomendasi untukmu</h3>
+                <span class="card-subtitle">Langkah praktis meningkatkan efektivitas belajar</span>
+              </div>
+              <div class="rec-items-vertical" id="recActionItemsList">
+                <!-- Diisi JS -->
+              </div>
+            </div>
+
+            <!-- Saran Jadwal -->
+            <div class="card">
+              <div class="card-header">
+                <h3>Saran Jadwal</h3>
+                <span class="card-subtitle">Ritme harian ideal untuk konsentrasi optimal</span>
+              </div>
+              <div class="schedule-timeline" id="recTimelineList">
+                <!-- Diisi JS -->
+              </div>
+              <div class="rest-reminder-box">
+                <span class="heart-icon">☕</span>
+                <p>Jangan lupa istirahat yang cukup untuk menjaga konsentrasi dan stamina!</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= PAGE 7: REPORTS ================= -->
+        <section class="page-view" id="page-reports">
+          <div class="reports-toolbar">
+            <div class="btn-group">
+              <button class="btn-toggle" data-report-period="daily">Harian</button>
+              <button class="btn-toggle active" data-report-period="weekly">Mingguan</button>
+              <button class="btn-toggle" data-report-period="monthly">Bulanan</button>
+            </div>
+
+            <div class="reports-export-btns">
+              <button class="btn btn-outline" id="btnReportExportCsv">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <span>Export CSV</span>
+              </button>
+              <button class="btn btn-primary" id="btnReportExportPdf">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                <span>Cetak / Export PDF</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 4 Summary Metric Pills -->
+          <div class="report-summary-pills">
+            <div class="summary-pill">
+              <span class="pill-icon">⏱</span>
+              <div class="pill-data">
+                <strong id="repTotalHours">14,5 jam</strong>
+                <small>Total Belajar</small>
+              </div>
+            </div>
+
+            <div class="summary-pill">
+              <span class="pill-icon">📋</span>
+              <div class="pill-data">
+                <strong id="repTotalSessions">9 sesi</strong>
+                <small>Jumlah Sesi</small>
+              </div>
+            </div>
+
+            <div class="summary-pill">
+              <span class="pill-icon">🎯</span>
+              <div class="pill-data">
+                <strong id="repTargetPct">91%</strong>
+                <small>Target Tercapai</small>
+              </div>
+            </div>
+
+            <div class="summary-pill">
+              <span class="pill-icon">⭐</span>
+              <div class="pill-data">
+                <strong id="repAvgFocus">4,2 / 5</strong>
+                <small>Rata-rata Fokus</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- Rekap Tabel & Grafik Durasi per Mata Pelajaran -->
+          <div class="report-content-grid">
+            <div class="card">
+              <div class="card-header">
+                <h3>Rekap per Mata Pelajaran</h3>
+              </div>
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>No</th>
+                      <th>Mata Pelajaran</th>
+                      <th>Total Jam</th>
+                      <th>Jumlah Sesi</th>
+                      <th>Persentase</th>
+                    </tr>
+                  </thead>
+                  <tbody id="reportTableBody">
+                    <!-- Diisi JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h3>Grafik Total Durasi per Mata Pelajaran</h3>
+              </div>
+              <div class="chart-container" style="height: 250px; position: relative;">
+                <canvas id="chartReportSubjects"></canvas>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= PAGE 8: LEADERBOARD ================= -->
+        <section class="page-view" id="page-leaderboard">
+          <!-- Floating Challenge Banner -->
+          <div class="challenge-banner-card" id="leaderboardChallengeBanner">
+            <div class="challenge-trophy">🏆</div>
+            <div class="challenge-text-wrap">
+              <h3 id="challengeBannerTitle">Tantangan Durasi Belajar!</h3>
+              <p id="challengeBannerMsg">Tingkatkan waktu belajarmu untuk merebut peringkat teratas di papan kompetisi!</p>
+            </div>
+            <button class="btn btn-primary" data-goto="timer">Mulai Belajar Sekarang</button>
+          </div>
+
+          <!-- Podium Top 3 -->
+          <div class="podium-container" id="leaderboardPodium">
+            <!-- Diisi JS (Peringkat 2, Peringkat 1, Peringkat 3) -->
+          </div>
+
+          <!-- Tabel Leaderboard Lengkap -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h3>Papan Peringkat Mahasiswa</h3>
+                <span class="card-subtitle">Urutan berdasarkan total akumulasi jam belajar terverifikasi</span>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="data-table leaderboard-table">
+                <thead>
+                  <tr>
+                    <th style="width: 60px;">Rank</th>
+                    <th>Mahasiswa</th>
+                    <th>Total Belajar</th>
+                    <th>Jumlah Sesi</th>
+                    <th>Streak</th>
+                    <th>Tier Badge</th>
+                  </tr>
+                </thead>
+                <tbody id="leaderboardTableBody">
+                  <!-- Diisi JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= PAGE 9: MATERI & KUIS ================= -->
+        <section class="page-view" id="page-materials">
+          <!-- AI STUDY STUDIO BANNER & GENERATOR -->
+          <div class="card ai-studio-card">
+            <div class="ai-studio-header">
+              <div class="ai-badge-pill">
+                <span class="ai-sparkle">✦</span>
+                <span>Bertenaga Google Gemini 2.5 Flash</span>
+              </div>
+              <h3>AI Flashcard &amp; Quiz Studio</h3>
+              <p class="card-subtitle">Buat flashcard interaktif 3D dan kuis pilihan ganda otomatis dalam hitungan detik. Cukup ketik topik mata kuliah apapun atau unggah dokumen materi (PDF, TXT, MD).</p>
+            </div>
+
+            <div class="ai-studio-tabs">
+              <button type="button" class="ai-tab-btn active" id="tabAiFromTopic">✦ Buat Instan dari Topik Apapun</button>
+              <button type="button" class="ai-tab-btn" id="tabAiFromUpload">📄 Buat dari Dokumen Materi</button>
+            </div>
+
+            <!-- Tab 1: Generate from topic prompt -->
+            <div id="aiTopicPanel" class="ai-tab-content">
+              <div class="form-group mb-3">
+                <label for="aiStudyTopicInput">Topik Materi / Mata Kuliah <span class="req">*</span></label>
+                <input type="text" id="aiStudyTopicInput" placeholder="Contoh: Normalisasi Basis Data (1NF-3NF), Algoritma Dijkstra, Jaringan Model OSI, Struktur Data Tree...">
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="aiStudyTypeSelect">Format Latihan</label>
+                  <select id="aiStudyTypeSelect" class="form-select">
+                    <option value="flashcard">🗂️ Flashcard Interaktif 3D</option>
+                    <option value="quiz" selected>🎯 Kuis Pilihan Ganda (MCQ)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="aiStudyCountSelect">Jumlah Soal / Kartu</label>
+                  <select id="aiStudyCountSelect" class="form-select">
+                    <option value="3">3 Soal (Kilat)</option>
+                    <option value="5" selected>5 Soal (Rekomendasi)</option>
+                    <option value="10">10 Soal (Mendalam)</option>
+                  </select>
+                </div>
+              </div>
+              <div class="ai-action-row mt-3">
+                <button type="button" class="btn btn-primary btn-ai-generate" id="btnGenerateAiFromTopic">
+                  <span class="ai-sparkle">✦</span>
+                  <span id="btnGenerateTopicText">Generate Latihan dengan Gemini AI</span>
+                </button>
+              </div>
+              <div id="aiTopicFeedbackMsg" class="form-feedback-msg mt-2"></div>
+            </div>
+
+            <!-- Tab 2: Generate from uploaded material -->
+            <div id="aiUploadPanel" class="ai-tab-content" style="display:none;">
+              <form id="materialUploadForm" class="upload-dropzone-form">
+                <label class="file-drop-area" for="materialFileInput">
+                  <div class="drop-icon">📄</div>
+                  <strong id="materialFileName">Pilih atau seret file PDF / TXT / MD ke sini</strong>
+                  <small>Gemini AI akan membaca seluruh materi dan mengekstrak flashcard/kuis otomatis</small>
+                </label>
+                <input type="file" id="materialFileInput" accept=".pdf,.txt,.md" style="display:none;">
+                
+                <div class="form-row mt-3">
+                  <div class="form-group">
+                    <label for="aiUploadTypeSelect">Format Latihan</label>
+                    <select id="aiUploadTypeSelect" class="form-select">
+                      <option value="flashcard">🗂️ Flashcard Interaktif 3D</option>
+                      <option value="quiz" selected>🎯 Kuis Pilihan Ganda (MCQ)</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="aiUploadCountSelect">Jumlah Soal / Kartu</label>
+                    <select id="aiUploadCountSelect" class="form-select">
+                      <option value="3">3 Soal</option>
+                      <option value="5" selected>5 Soal</option>
+                      <option value="10">10 Soal</option>
+                    </select>
+                  </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-ai-generate mt-3" id="btnUploadMaterial">
+                  <span class="ai-sparkle">✦</span>
+                  <span id="btnUploadMaterialText">Unggah &amp; Generate dengan Gemini AI</span>
+                </button>
+              </form>
+              <div id="materialUploadMsg" class="form-feedback-msg mt-2"></div>
+            </div>
+          </div>
+
+          <!-- Koleksi Materi Saya -->
+          <div class="card mt-4">
+            <div class="card-header">
+              <div>
+                <h3>Koleksi Materi &amp; Latihan Saya</h3>
+                <span class="card-subtitle">Materi belajar yang tersimpan, siap dibuka kapan saja dengan Flashcard atau Kuis</span>
+              </div>
+            </div>
+            <div class="materials-list-wrap" id="materialsList">
+              <!-- Diisi JS -->
+            </div>
+          </div>
+
+          <!-- Interactive Study Area (Flashcards & Quiz) -->
+          <div class="card mt-4" id="studyInteractiveArea" style="display:none;">
+            <div class="card-header">
+              <div>
+                <h3 id="studyAreaTitle">Latihan</h3>
+                <span class="card-subtitle" id="studyAreaSubtitle">Kartu pembelajaran</span>
+              </div>
+              <button class="btn btn-outline btn-sm" id="btnCloseStudyArea">✕ Tutup Latihan</button>
+            </div>
+            <div class="study-card-content" id="studyInteractiveContent">
+              <!-- Diisi JS -->
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= PAGE 10: PROFILE & UPLOAD IMAGE ================= -->
+        <section class="page-view" id="page-profile">
+          <div class="profile-grid-layout">
+            <!-- Sisi Kiri: Foto Profil & Avatar Upload -->
+            <div class="card profile-avatar-card">
+              <div class="big-avatar-wrapper">
+                <img id="profileAvatarImg" src="" alt="Profile Photo" class="big-avatar-img" style="display:none;">
+                <div id="profileAvatarFallback" class="big-avatar-fallback" aria-label="Foto profil belum diisi"></div>
+                <label for="profilePhotoInput" class="avatar-edit-badge" title="Ganti Foto">
+                  📷
+                </label>
+              </div>
+              <input type="file" id="profilePhotoInput" accept="image/png,image/jpeg,image/webp" style="display:none;">
+              <div class="avatar-actions-group" style="display: flex; gap: 8px; width: 100%; margin-top: 14px;">
+                <button type="button" class="btn btn-outline" id="btnTriggerAvatarUpload" style="flex: 1; padding: 8px 12px; font-size: 13px;">Ubah Foto</button>
+                <button type="button" class="btn btn-outline" id="btnRemoveAvatar" style="flex: 1; padding: 8px 12px; font-size: 13px; color: #ef4444; border-color: rgba(239, 68, 68, 0.4); display: none;">Hapus Foto</button>
+              </div>
+
+              <h3 class="profile-name" id="profileDisplayName">Fathul Khair</h3>
+              <p class="profile-nim" id="profileDisplayNim">NIM 241712073</p>
+
+              <div class="avatar-upload-feedback" id="avatarUploadFeedback"></div>
+            </div>
+
+            <!-- Sisi Tengah: Informasi Pribadi Form -->
+            <div class="card profile-info-card">
+              <div class="card-header">
+                <h3>Informasi Pribadi</h3>
+                <span class="card-subtitle">Perbarui data diri mahasiswa</span>
+              </div>
+
+              <form id="profileInfoForm" class="app-form">
+                <div class="form-group">
+                  <label for="profFullName">Nama Lengkap <span class="req">*</span></label>
+                  <input type="text" id="profFullName" required>
+                </div>
+
+                <div class="form-group">
+                  <label for="profNim">NIM (Nomor Induk Mahasiswa)</label>
+                  <input type="text" id="profNim">
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="profMajor">Program Studi</label>
+                    <input type="text" id="profMajor" placeholder="Contoh: Teknik Informatika" value="Teknik Informatika">
+                  </div>
+
+                  <div class="form-group">
+                    <label for="profFaculty">Fakultas</label>
+                    <input type="text" id="profFaculty" placeholder="Contoh: Vokasi" value="Vokasi">
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="profUniversity">Universitas / Institut</label>
+                  <input type="text" id="profUniversity" placeholder="Contoh: Universitas Sumatera Utara">
+                </div>
+
+                <div class="form-group">
+                  <label for="profEmail">Email</label>
+                  <input type="email" id="profEmail" placeholder="nama@email.com">
+                </div>
+
+                <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                <div id="profileFormMsg" class="form-feedback-msg"></div>
+              </form>
+            </div>
+
+            <!-- Sisi Kanan: Pengaturan Akun & Target -->
+            <div class="card profile-settings-card">
+              <div class="card-header">
+                <h3>Pengaturan</h3>
+              </div>
+
+              <form id="profileSettingsForm" class="app-form">
+                <div class="form-group">
+                  <label for="profDailyTarget">Target Harian (Jam)</label>
+                  <select id="profDailyTarget">
+                    <option value="1">1 Jam</option>
+                    <option value="2" selected>2 Jam</option>
+                    <option value="3">3 Jam</option>
+                    <option value="4">4 Jam</option>
+                    <option value="5">5 Jam</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="profWeeklyTarget">Target Mingguan (Jam)</label>
+                  <select id="profWeeklyTarget">
+                    <option value="10">10 Jam</option>
+                    <option value="14">14 Jam</option>
+                    <option value="16" selected>16 Jam</option>
+                    <option value="20">20 Jam</option>
+                    <option value="24">24 Jam</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="profTheme">Tema Aplikasi</label>
+                  <select id="profTheme">
+                    <option value="purple" selected>StarAdmin Peach (Bawaan)</option>
+                    <option value="dark">Mode Gelap (Dark Mode)</option>
+                    <option value="blue">Biru Modern</option>
+                  </select>
+                </div>
+
+                <button type="submit" class="btn btn-outline btn-block">Simpan Target</button>
+              </form>
+
+              <hr class="card-divider">
+
+              <div class="account-action-buttons">
+                <button class="btn btn-outline btn-block" id="btnOpenChangePassword">🔒 Ganti Password</button>
+                <button class="btn btn-outline btn-block" id="btnOpenNotificationsSettings">🔔 Pengaturan Notifikasi</button>
+                <button class="btn btn-danger-outline btn-block" id="btnProfileLogout">🚪 Logout</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+  </div> <!-- End #appRootLayout -->
+
+  <!-- ================= MODALS & POPUPS ================= -->
+
+  <!-- 1. Modal Tambah / Edit Aktivitas Sesi Belajar (CRUD) -->
+  <div class="modal-backdrop" id="modalActivityCrud">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="activityModalTitle">Tambah Aktivitas Belajar</h3>
+        <button class="btn-close-modal" id="btnCloseActivityModal">×</button>
+      </div>
+
+      <form id="formActivityCrud" class="app-form">
+        <input type="hidden" id="crudSessionId" value="">
+
+        <div class="form-group">
+          <label for="crudSubject">Mata Pelajaran <span class="req">*</span></label>
+          <input type="text" id="crudSubject" placeholder="Contoh: Pemrograman" required>
+        </div>
+
+        <div class="form-group">
+          <label for="crudTopic">Topik Belajar <span class="req">*</span></label>
+          <input type="text" id="crudTopic" placeholder="Contoh: Pengenalan Pandas" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="crudMinutes">Durasi Belajar (Menit) <span class="req">*</span></label>
+            <input type="number" id="crudMinutes" min="1" max="720" placeholder="Contoh: 90" required>
+          </div>
+
+          <div class="form-group">
+            <label for="crudStart">Waktu &amp; Tanggal Mulai <span class="req">*</span></label>
+            <input type="datetime-local" id="crudStart" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Tingkat Fokus (1-5)</label>
+          <div class="focus-rating-stars" id="crudFocusRating">
+            <button type="button" class="star-btn" data-val="1">★</button>
+            <button type="button" class="star-btn" data-val="2">★</button>
+            <button type="button" class="star-btn" data-val="3">★</button>
+            <button type="button" class="star-btn active" data-val="4">★</button>
+            <button type="button" class="star-btn active" data-val="5">★</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="crudNote">Catatan Belajar (Opsional)</label>
+          <textarea id="crudNote" rows="2" placeholder="Detail catatan belajar..."></textarea>
+        </div>
+
+        <div class="modal-actions-row">
+          <button type="button" class="btn btn-outline" id="btnCancelActivityModal">Batal</button>
+          <button type="submit" class="btn btn-primary" id="btnSaveActivityCrud">Simpan Aktivitas</button>
+        </div>
+        <div id="crudFeedbackMsg" class="form-feedback-msg"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. Modal Tambah / Edit Jadwal Planner -->
+  <div class="modal-backdrop" id="modalScheduleCrud">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="scheduleModalTitle">Tambah Jadwal Belajar</h3>
+        <button class="btn-close-modal" id="btnCloseScheduleModal">×</button>
+      </div>
+
+      <form id="formScheduleCrud" class="app-form">
+        <input type="hidden" id="crudScheduleId" value="">
+
+        <div class="form-group">
+          <label for="schedSubject">Mata Pelajaran <span class="req">*</span></label>
+          <input type="text" id="schedSubject" placeholder="Contoh: Pemrograman" required>
+        </div>
+
+        <div class="form-group">
+          <label for="schedDay">Hari Belajar <span class="req">*</span></label>
+          <select id="schedDay" required>
+            <option value="0">Senin</option>
+            <option value="1">Selasa</option>
+            <option value="2">Rabu</option>
+            <option value="3">Kamis</option>
+            <option value="4">Jumat</option>
+            <option value="5">Sabtu</option>
+            <option value="6">Minggu</option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="schedStartTime">Jam Mulai (JJ:MM) <span class="req">*</span></label>
+            <input type="time" id="schedStartTime" value="09:00" required>
+          </div>
+
+          <div class="form-group">
+            <label for="schedEndTime">Jam Selesai (JJ:MM) <span class="req">*</span></label>
+            <input type="time" id="schedEndTime" value="11:00" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="schedColor">Warna Label</label>
+          <select id="schedColor">
+            <option value="#F29F67" selected>Coral StarAdmin (StudyPulse)</option>
+            <option value="#10b981">Hijau Emerald</option>
+            <option value="#38bdf8">Biru Langit</option>
+            <option value="#f59e0b">Kuning / Amber</option>
+            <option value="#ef4444">Merah Koral</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="schedNote">Keterangan / Catatan</label>
+          <input type="text" id="schedNote" placeholder="Contoh: Teori &amp; Praktikum Laboratorium">
+        </div>
+
+        <div class="modal-actions-row">
+          <button type="button" class="btn btn-outline" id="btnCancelScheduleModal">Batal</button>
+          <button type="submit" class="btn btn-primary">Simpan Jadwal</button>
+        </div>
+        <div id="schedFeedbackMsg" class="form-feedback-msg"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. Modal Import CSV -->
+  <div class="modal-backdrop" id="modalImportCsv">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Import Data Sesi Belajar dari CSV</h3>
+        <button class="btn-close-modal" id="btnCloseImportCsv">×</button>
+      </div>
+
+      <div class="csv-import-intro">
+        <p>Unggah file <code>.csv</code> berisi daftar riwayat belajar. Kolom yang didukung: <strong>Mata Pelajaran, Topik, Tanggal Mulai, Durasi, Tingkat Fokus, Catatan</strong>.</p>
+        <button class="btn btn-sm btn-outline" id="btnDownloadCsvTemplate">📥 Unduh Contoh Template CSV</button>
+      </div>
+
+      <div class="upload-dropzone-form mt-3">
+        <label class="file-drop-area" for="csvFileInput">
+          <div class="drop-icon">📊</div>
+          <strong id="csvFileName">Klik untuk memilih file CSV</strong>
+          <small>Format file .csv (UTF-8)</small>
+        </label>
+        <input type="file" id="csvFileInput" accept=".csv" style="display:none;">
+      </div>
+
+      <div id="csvPreviewArea" style="display:none;" class="mt-3">
+        <h4>Pratinjau Data (Maks. 5 Baris Pertama):</h4>
+        <div class="table-responsive">
+          <table class="data-table" id="csvPreviewTable">
+            <thead id="csvPreviewThead"></thead>
+            <tbody id="csvPreviewTbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="modal-actions-row mt-4">
+        <button type="button" class="btn btn-outline" id="btnCancelImportCsv">Batal</button>
+        <button type="button" class="btn btn-primary" id="btnSubmitImportCsv" disabled>Import Sekarang</button>
+      </div>
+      <div id="csvImportFeedback" class="form-feedback-msg"></div>
+    </div>
+  </div>
+
+  <!-- 4. Drawer Notifikasi Pop-up -->
+  <div class="modal-backdrop" id="modalNotifications">
+    <div class="modal-card notifications-modal">
+      <div class="modal-header">
+        <h3>Notifikasi Belajar</h3>
+        <button class="btn-close-modal" id="btnCloseNotifModal">×</button>
+      </div>
+      <div class="notifications-list" id="notificationsList">
+        <!-- Diisi JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Modal Settings Pop-up -->
+  <div class="modal-backdrop" id="modalSettings">
+    <div class="modal-card settings-modal">
+      <div class="modal-header">
+        <h3>Pengaturan Aplikasi</h3>
+        <button class="btn-close-modal" id="btnCloseSettingsModal">×</button>
+      </div>
+
+      <div class="settings-list">
+        <div class="setting-item-row">
+          <div>
+            <strong>Mode Gelap</strong>
+            <small>Tampilan ramah mata untuk belajar malam hari</small>
+          </div>
+          <label class="switch-toggle">
+            <input type="checkbox" id="switchDarkMode">
+            <span class="slider round"></span>
+          </label>
+        </div>
+
+        <div class="setting-item-row">
+          <div>
+            <strong>Suara &amp; Notifikasi</strong>
+            <small>Bunyi alarm ketika timer Pomodoro selesai</small>
+          </div>
+          <label class="switch-toggle">
+            <input type="checkbox" id="switchSounds" checked>
+            <span class="slider round"></span>
+          </label>
+        </div>
+
+        <div class="setting-item-row">
+          <div>
+            <strong>Bahasa</strong>
+            <small>Pilih bahasa antarmuka</small>
+          </div>
+          <select id="selectAppLanguage" class="form-select form-select-sm">
+            <option value="id" selected>Indonesia</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+
+        <div class="setting-item-row">
+          <div>
+            <strong>Database Koneksi</strong>
+            <small id="settingsDbInfoText">Memeriksa status...</small>
+          </div>
+          <span class="badge-mini-rank">Mode lokal</span>
+        </div>
+
+        <div class="setting-item-row danger-zone">
+          <div>
+            <strong>Reset Data Belajar</strong>
+            <small>Hapus seluruh sesi dan jadwal dari akun ini</small>
+          </div>
+          <button class="btn btn-sm btn-danger-outline" id="btnResetUserData">Reset Data</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- APP IN-PAGE POPUP CONFIRM / ALERT MODAL (Tanpa Notif Localhost) -->
+  <div class="modal-backdrop" id="appPopupModal" style="z-index: 10002;">
+    <div class="modal-card app-popup-card">
+      <div class="app-popup-icon-wrap warning" id="appPopupIcon">⚠️</div>
+      <h3 class="app-popup-title" id="appPopupTitle">Konfirmasi</h3>
+      <p class="app-popup-desc" id="appPopupDesc">Apakah kamu yakin?</p>
+      <div id="appPopupInputWrap" style="display: none; width: 100%; margin-bottom: 20px;">
+        <input type="text" id="appPopupInput" class="form-input" style="width: 100%; box-sizing: border-box; background: var(--bg-card); border: 1.5px solid var(--border-color); color: var(--text-primary); padding: 10px 14px; border-radius: 10px;" placeholder="">
+      </div>
+      <div class="app-popup-actions">
+        <button type="button" class="btn btn-secondary" id="btnAppPopupCancel">Batal</button>
+        <button type="button" class="btn btn-primary" id="btnAppPopupConfirm">Ya, Lanjutkan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- APP TOAST NOTIFICATION CONTAINER (Modern Popups) -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

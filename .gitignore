@@ -1,0 +1,22 @@
+# Build & PyInstaller outputs
+build/
+dist/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment variables & secrets
+.env
+.env.*
+!.env.example
+
+# User-uploaded materials & logs
+materials/
+*.log
+
+# IDE / OS
+.vscode/
+.DS_Store
+Thumbs.db
